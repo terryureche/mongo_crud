@@ -1,8 +1,10 @@
 package com.terry.mongo_crud;
 
 import com.terry.mongo_crud.db.mongo.models.Category;
+import com.terry.mongo_crud.db.mongo.models.Product;
 import com.terry.mongo_crud.db.mongo.models.Subcategory;
 import com.terry.mongo_crud.db.mongo.repositories.CategoryRepository;
+import com.terry.mongo_crud.db.mongo.repositories.ProductRepository;
 import com.terry.mongo_crud.db.mongo.repositories.SubCategoryRepository;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
@@ -21,11 +23,14 @@ class PrettyShopApplicationTests {
     private SubCategoryRepository subCategoryRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
 
     private void eraseDemoData() {
         categoryRepository.deleteAll();
         subCategoryRepository.deleteAll();
+        productRepository.deleteAll();
     }
 
     private Category generateCategory(Integer id, String name) {
@@ -34,6 +39,7 @@ class PrettyShopApplicationTests {
     }
 
     private void feedDemoData() {
+        //category
         Category clothes = generateCategory(0, "clothes");
         Category footwear = generateCategory(1,"footwear");
 
@@ -41,6 +47,7 @@ class PrettyShopApplicationTests {
         Integer LIMIT_UNTIL_CLOTHES = 4;
 
         for(Integer i = 0; i < RECORD_NR; i++) {
+            //subcategory
             Subcategory subcategory = new Subcategory();
             subcategory.setId(i);
             subcategory.setName(String.format("%s-%d", "clothes", i));
@@ -57,7 +64,27 @@ class PrettyShopApplicationTests {
 
             subcategory.setCategoryList(categoryList);
 
-            subCategoryRepository.save(subcategory);
+            Subcategory subcategoryBean = subCategoryRepository.save(subcategory);
+
+            //product
+            //we should have the subcategory bean already saved
+            Product product = new Product();
+            product.setId(i);
+            product.setName(String.format("%s-%d", "item", i));
+
+            List<Category> categoryListForProduct = null;
+            List<Subcategory> subcategoryListForProduct = Arrays.asList(subcategoryBean);
+
+            if(i < LIMIT_UNTIL_CLOTHES) {
+                categoryListForProduct = Arrays.asList(clothes);
+            } else {
+                categoryListForProduct = Arrays.asList(clothes, footwear);
+            }
+
+            product.setCategoryList(categoryListForProduct);
+            product.setSubcategoryList(subcategoryListForProduct);
+
+            productRepository.save(product);
         }
     }
 
@@ -85,6 +112,16 @@ class PrettyShopApplicationTests {
         Integer subcategoriesNr = subcategoriesList.size();
 
         Assert.assertEquals(EXPECTED_NUMBER, subcategoriesNr);
+    }
+
+    @Test
+    public void getCountOfProductsRelatedToCategoryAndSubCategory() {
+        Integer EXPECTED_NUMBER = 1;
+
+        List<Product> productList = productRepository.findAllByCategoryIdSubCategoryID(0, 1);
+        Integer productsNr = productList.size();
+
+        Assert.assertEquals(EXPECTED_NUMBER, productsNr);
     }
 
 //    @Test
