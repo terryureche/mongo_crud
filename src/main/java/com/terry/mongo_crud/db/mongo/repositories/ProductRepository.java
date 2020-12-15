@@ -10,4 +10,8 @@ public interface ProductRepository extends PagingAndSortingRepository<Product, S
     //   mongodb compass { "categoryList.$id" : 0, "subcategoryList.$id": 1}
     @Query(value="{'categoryList.id' : ?0, 'subcategoryList.id' : ?1}")
     List<Product> findAllByCategoryIdSubCategoryID(Integer lhsId, Integer rhsId);
+    @Query(value="{'categoryList.id' : ?0}")
+    List<Product> findAllByCategoryId(Integer lhsId);
+    @Query(value="{'subcategoryList.id' : ?0}")
+    List<Product> findAllBySubCategoryID(Integer lhsId);
 }
