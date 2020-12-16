@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/products")
@@ -16,38 +17,18 @@ class Products {
     private ProductRepository productRepository;
 
     @GetMapping
-    Iterable<Product> getProducts() {
-        return productRepository.findAll();
-    }
-
-    //looks like this is use swagger
-    //and we are not allowed to use the same url with diff params
-    @RequestMapping("/category_id_and_subcategory_id")
-    @GetMapping
-    Iterable<Product> getProductsFilteredBySubCategoryAndCategory(
-            @RequestParam(name="categoryId") Integer categoryId,
-            @RequestParam(name="subCategoryId") Integer subCategoryId
+        Iterable<Product> getProducts(
+            @RequestParam(name="categoryId",required = false) Optional<Integer> categoryId,
+            @RequestParam(name="subCategoryId", required = false) Optional<Integer> subCategoryId
     ) {
-        return productRepository.findAllByCategoryIdSubCategoryID(categoryId, subCategoryId);
-    }
-
-    //looks like this is use swagger
-    //and we are not allowed to use the same url with diff params
-    @RequestMapping("/category_id")
-    @GetMapping
-    Iterable<Product> getProductsFilteredByCategory(
-            @RequestParam(name="categoryId") Integer categoryId
-    ) {
-        return productRepository.findAllByCategoryId(categoryId);
-    }
-
-    //looks like this is use swagger
-    //and we are not allowed to use the same url with diff params
-    @RequestMapping("/subcategory_id")
-    @GetMapping
-    Iterable<Product> getProductsFilteredBySubCategory(
-            @RequestParam(name="subCategoryId") Integer subCategoryId
-    ) {
-        return productRepository.findAllBySubCategoryID(subCategoryId);
+        if(categoryId.isPresent() && subCategoryId.isPresent()) {
+            return productRepository.findAllByCategoryIdSubCategoryID(categoryId.get(), subCategoryId.get());
+        } else if(categoryId.isPresent()) {
+            return productRepository.findAllByCategoryId(categoryId.get());
+        } else if(subCategoryId.isPresent()) {
+            return productRepository.findAllBySubCategoryID(subCategoryId.get());
+        } else {
+            return productRepository.findAll();
+        }
     }
 }
